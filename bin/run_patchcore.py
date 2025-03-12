@@ -180,6 +180,9 @@ def run(
             threshold = patchcore.metrics.compute_imagewise_retrieval_metrics(
                 scores, anomaly_labels
             )["threshold"]
+            accuracy = patchcore.metrics.compute_imagewise_retrieval_metrics(
+                scores, anomaly_labels
+            )["accuracy"]
             # Compute PRO score & PW Auroc for all images
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
                 segmentations, masks_gt
@@ -204,6 +207,7 @@ def run(
                     "full_pixel_auroc": full_pixel_auroc,
                     "anomaly_pixel_auroc": anomaly_pixel_auroc,
                     "optimal_threshold":threshold,
+                    "accuracy":accuracy,
                 }
             )
 
