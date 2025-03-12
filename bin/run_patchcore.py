@@ -207,7 +207,7 @@ def run(
                     "full_pixel_auroc": full_pixel_auroc,
                     "anomaly_pixel_auroc": anomaly_pixel_auroc,
                     "optimal_threshold":threshold,
-                    "accuracy":accuracy,
+                    "accuracy_wrt_optimal_threshold":accuracy,
                 }
             )
 
