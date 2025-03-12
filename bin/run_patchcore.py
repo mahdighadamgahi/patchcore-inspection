@@ -146,16 +146,16 @@ def run(
 
                 def image_transform(image):
                     in_std = np.array(
-                        dataloaders["testing"].dataset.transform_std
+                        [0.229, 0.224, 0.225]
                     ).reshape(-1, 1, 1)
                     in_mean = np.array(
-                        dataloaders["testing"].dataset.transform_mean
+                        [0.485, 0.456, 0.406]
                     ).reshape(-1, 1, 1)
                     image = dataloaders["testing"].dataset.transform_img(image)
                     return np.clip(
                         (image.numpy() * in_std + in_mean) * 255, 0, 255
                     ).astype(np.uint8)
-
+                    
                 def mask_transform(mask):
                     return dataloaders["testing"].dataset.transform_mask(mask).numpy()
 
@@ -177,7 +177,9 @@ def run(
             auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
                 scores, anomaly_labels
             )["auroc"]
-
+            threshold = patchcore.metrics.compute_imagewise_retrieval_metrics(
+                scores, anomaly_labels
+            )["threshold"]
             # Compute PRO score & PW Auroc for all images
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
                 segmentations, masks_gt
@@ -201,6 +203,7 @@ def run(
                     "instance_auroc": auroc,
                     "full_pixel_auroc": full_pixel_auroc,
                     "anomaly_pixel_auroc": anomaly_pixel_auroc,
+                    "optimal_threshold":threshold,
                 }
             )
 
