@@ -2,6 +2,7 @@ import timm  # noqa
 import torchvision.models as models  # noqa
 import onnxruntime as ort
 import tensorflow as tf
+import ctypes
 
 _BACKBONES = {
     "alexnet": "models.alexnet(pretrained=True)",
@@ -47,6 +48,7 @@ _BACKBONES = {
     "efficientnet_b3a": 'timm.create_model("efficientnet_b3a", pretrained=True)',
     "custom_tflite": 'load_tflite_model("models/custom_model.tflite")',
     "custom_onnx": 'load_onnx_model("models/custom_model.onnx")',
+    "custom_so": 'load_so_model("models/custom_model.so")',
 }
 
 def load_tflite_model(model_path):
@@ -57,6 +59,10 @@ def load_tflite_model(model_path):
 def load_onnx_model(model_path):
     session = ort.InferenceSession(model_path)
     return session
+
+def load_so_model(model_path):
+    model = ctypes.CDLL(model_path)
+    return model
 
 def load(name):
     return eval(_BACKBONES[name])
