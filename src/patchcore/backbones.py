@@ -54,23 +54,16 @@ _BACKBONES = {
 }
 
 def load_tflite_model(model_path):
-    interpreter = tf.lite.Interpreter(model_path=model_path)
-    interpreter.allocate_tensors()
-    return interpreter
+    torch_model = Model.from_pretrained(model_path)
+    return torch_model
 
 def load_onnx_model(model_path):
-    session = ort.InferenceSession(model_path)
-    return session
+    torch_model = Model.from_pretrained(model_path)
+    return torch_model
 
 def load_so_model(model_path):
-    torch_model = Model.from_pretrained()
-    device = hub.Device("Samsung Galaxy S23")
-
-# Trace model
-    input_shape = torch_model.get_input_spec()
-    sample_inputs = torch_model.sample_inputs()
-    pt_model = torch.jit.trace(torch_model, [torch.tensor(data[0]) for _, data in sample_inputs.items()])
-    return pt_model
+    torch_model = Model.from_pretrained(model_path)
+    return torch_model
 
 def load(name):
     return eval(_BACKBONES[name])
