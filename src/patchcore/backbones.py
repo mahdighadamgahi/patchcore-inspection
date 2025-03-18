@@ -46,9 +46,9 @@ _BACKBONES = {
     "efficientnetv2_m": 'timm.create_model("tf_efficientnetv2_m", pretrained=True)',
     "efficientnetv2_l": 'timm.create_model("tf_efficientnetv2_l", pretrained=True)',
     "efficientnet_b3a": 'timm.create_model("efficientnet_b3a", pretrained=True)',
-    "custom_tflite": 'load_tflite_model("models/custom_model.tflite")',
-    "custom_onnx": 'load_onnx_model("models/custom_model.onnx")',
-    "custom_so": 'load_so_model("models/custom_model.so")',
+    "custom_tflite": 'load_tflite_model("/content/drive/MyDrive/Datasets/models/custom_model.tflite")',
+    "custom_onnx": 'load_onnx_model("/content/drive/MyDrive/Datasets/models/custom_model.onnx")',
+    "custom_so": 'load_so_model("/content/drive/MyDrive/Datasets/models/custom_model.so")',
 }
 
 def load_tflite_model(model_path):
