@@ -3,6 +3,7 @@ import torchvision.models as models  # noqa
 import onnxruntime as ort
 import tensorflow as tf
 import ctypes
+import requests
 
 _BACKBONES = {
     "alexnet": "models.alexnet(pretrained=True)",
@@ -46,11 +47,32 @@ _BACKBONES = {
     "efficientnetv2_m": 'timm.create_model("tf_efficientnetv2_m", pretrained=True)',
     "efficientnetv2_l": 'timm.create_model("tf_efficientnetv2_l", pretrained=True)',
     "efficientnet_b3a": 'timm.create_model("efficientnet_b3a", pretrained=True)',
-    "custom_tflite": 'load_tflite_model("models/custom_model.tflite")',
-    "custom_onnx": 'load_onnx_model("models/custom_model.onnx")',
-    "custom_so": 'load_so_model("models/custom_model.so")',
+    "tflite": 'download_and_load_model("https://huggingface.co/qualcomm/WideResNet50-Quantized/resolve/main/WideResNet50-Quantized.so","custom_model.so")',
+    "onnx": 'download_and_load_model("https://huggingface.co/qualcomm/WideResNet50-Quantized/resolve/main/WideResNet50-Quantized.so","custom_model.so")',
+    "so": 'load_so_model("https://huggingface.co/qualcomm/WideResNet50-Quantized/resolve/main/WideResNet50-Quantized.so","custom_model.so")',
 }
 
+def load_so_model(url, model_filename):
+  """Downloads a model file from a URL and loads it using ctypes.
+
+  Args:
+    url: The URL of the model file to download.
+    model_filename: The filename to save the model as.
+
+  Returns:
+    The loaded model object.
+  """
+
+  # Download the model file
+    response = requests.get(url, stream=True)
+    with open(model_filename, 'wb') as f:
+      for chunk in response.iter_content(chunk_size=8192):
+        f.write(chunk)
+
+  # Load the model using ctypes
+    model = ctypes.CDLL(model_filename)
+    return model
+    
 def load_tflite_model(model_path):
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
