@@ -53,38 +53,41 @@ _BACKBONES = {
 }
 
 def load_so_model(url, model_filename):
-      """Downloads a model file from a URL and loads it using ctypes.
+    """Downloads a model file from a URL and loads it using ctypes.
 
-      Args:
+    Args:
         url: The URL of the model file to download.
         model_filename: The filename to save the model as.
 
-      Returns:
+    Returns:
         The loaded model object.
-      """
-
-  # Download the model file
+    """
+    # Download the model file
     response = requests.get(url, stream=True)
     with open(model_filename, 'wb') as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
 
-  # Load the model using ctypes
+    # Load the model using ctypes
     model = ctypes.CDLL(model_filename)
     return model
-    
+
+
 def load_tflite_model(model_path):
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
     return interpreter
 
+
 def load_onnx_model(model_path):
     session = ort.InferenceSession(model_path)
     return session
 
+
 def load_so_model(model_path):
     model = ctypes.CDLL(model_path)
     return model
+
 
 def load(name):
     return eval(_BACKBONES[name])
