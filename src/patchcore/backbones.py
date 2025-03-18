@@ -84,10 +84,6 @@ def load_onnx_model(model_path):
     return session
 
 
-def load_so_model(model_path):
-    model = ctypes.CDLL(model_path)
-    return model
-
 
 def load(name):
     return eval(_BACKBONES[name])
