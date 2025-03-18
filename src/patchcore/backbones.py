@@ -4,12 +4,12 @@ import onnxruntime as ort
 import tensorflow as tf
 import ctypes
 import torch
-import qai_hub as hub
-from qai_hub_models.models.wideresnet50_quantized import Model
+import torchvision.models.quantization as quantization
 _BACKBONES = {
     "alexnet": "models.alexnet(pretrained=True)",
     "bninception": 'pretrainedmodels.__dict__["bninception"](pretrained="imagenet", num_classes=1000)',
     "resnet50": "models.resnet50(pretrained=True)",
+    "qresnet50":"quantization.resnet50(pretrained=True)",
     "resnet101": "models.resnet101(pretrained=True)",
     "resnext101": "models.resnext101_32x8d(pretrained=True)",
     "resnet200": 'timm.create_model("resnet200", pretrained=True)',
@@ -50,7 +50,7 @@ _BACKBONES = {
     "efficientnet_b3a": 'timm.create_model("efficientnet_b3a", pretrained=True)',
     "custom_tflite": 'load_tflite_model("/content/drive/MyDrive/Datasets/models/custom_model.tflite")',
     "custom_onnx": 'load_onnx_model("/content/drive/MyDrive/Datasets/models/custom_model.onnx")',
-    "custom_so": 'load_so_model("/content/drive/MyDrive/Datasets/models/custom_model.so")',
+   
 }
 
 def load_tflite_model(model_path):
@@ -61,9 +61,6 @@ def load_onnx_model(model_path):
     torch_model = Model.from_pretrained(model_path)
     return torch_model
 
-def load_so_model(model_path):
-    torch_model = Model.from_pretrained(model_path)
-    return torch_model
 
 def load(name):
     return eval(_BACKBONES[name])
