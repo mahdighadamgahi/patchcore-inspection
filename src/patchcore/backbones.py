@@ -1,8 +1,6 @@
 import timm  # noqa
 import torchvision.models as models  # noqa
-import onnxruntime as ort
 import tensorflow as tf
-import ctypes
 import torch
 import torchvision.models.quantization as quantization
 _BACKBONES = {
@@ -48,18 +46,9 @@ _BACKBONES = {
     "efficientnetv2_m": 'timm.create_model("tf_efficientnetv2_m", pretrained=True)',
     "efficientnetv2_l": 'timm.create_model("tf_efficientnetv2_l", pretrained=True)',
     "efficientnet_b3a": 'timm.create_model("efficientnet_b3a", pretrained=True)',
-    "custom_tflite": 'load_tflite_model("/content/drive/MyDrive/Datasets/models/custom_model.tflite")',
-    "custom_onnx": 'load_onnx_model("/content/drive/MyDrive/Datasets/models/custom_model.onnx")',
-   
+  
 }
 
-def load_tflite_model(model_path):
-    torch_model = Model.from_pretrained(model_path)
-    return torch_model
-
-def load_onnx_model(model_path):
-    torch_model = Model.from_pretrained(model_path)
-    return torch_model
 
 
 def load(name):
