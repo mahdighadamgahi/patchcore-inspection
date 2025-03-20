@@ -21,6 +21,7 @@ def plot_segmentation_images(
     image_transform=lambda x: x,
     mask_transform=lambda x: x,
     save_depth=4,
+    threshold=1,
 ):
     """Generate anomaly segmentation images.
 
@@ -67,7 +68,7 @@ def plot_segmentation_images(
         f, axes = plt.subplots(1, 2 + int(masks_provided))
         axes[0].imshow(image.transpose(1, 2, 0))
         axes[1].imshow(mask.transpose(1, 2, 0))
-        axes[2].imshow(segmentation,vmin=0, vmax=max(segmentation.max(), 0.5))
+        axes[2].imshow(segmentation,vmin=0, vmax=max(segmentation.max(), threshold))
         f.suptitle(f"Anomaly Score: {anomaly_score}", fontsize=12, color="red")
         f.set_size_inches(3 * (2 + int(masks_provided)), 3)
         f.tight_layout()
