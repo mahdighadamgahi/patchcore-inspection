@@ -5,10 +5,10 @@ from sklearn.model_selection import train_test_split
 
 
 def compute_imagewise_retrieval_metrics(
-    anomaly_prediction_weights, anomaly_ground_truth_labels
+    anomaly_prediction_weights, anomaly_ground_truth_labels, sample_names
 ):
     """
-    Computes retrieval statistics (AUROC, FPR, TPR).
+    Computes retrieval statistics (AUROC, FPR, TPR) and prints the names of failed test samples.
 
     Args:
         anomaly_prediction_weights: [np.array or list] [N] Assignment weights
@@ -16,23 +16,25 @@ def compute_imagewise_retrieval_metrics(
                                     probability of being an anomaly.
         anomaly_ground_truth_labels: [np.array or list] [N] Binary labels - 1
                                     if image is an anomaly, 0 if not.
+        sample_names: [list] [N] Names of the samples.
     """
-    y_val_truth, y_test_truth,y_val_pred, y_test_pred = train_test_split(anomaly_ground_truth_labels,anomaly_prediction_weights, test_size=0.5, random_state=42)
-
-
-    
-    fpr, tpr, thresholds = metrics.roc_curve(
-        y_val_truth, y_val_pred
+    y_val_truth, y_test_truth, y_val_pred, y_test_pred, val_names, test_names = train_test_split(
+        anomaly_ground_truth_labels, anomaly_prediction_weights, sample_names, test_size=0.5, random_state=42
     )
+
+    fpr, tpr, thresholds = metrics.roc_curve(y_val_truth, y_val_pred)
     J = tpr - fpr
-    optimal_threshold =thresholds[np.argmax(J)]
+    optimal_threshold = thresholds[np.argmax(J)]
     y_pred = (y_test_pred >= optimal_threshold).astype(int)
     accuracy = metrics.accuracy_score(y_test_truth, y_pred)
 
-    auroc = metrics.roc_auc_score(
-        anomaly_ground_truth_labels, anomaly_prediction_weights
-    )
-    return {"auroc": auroc, "fpr": fpr, "tpr": tpr, "threshold": optimal_threshold,"accuracy":accuracy}
+    auroc = metrics.roc_auc_score(anomaly_ground_truth_labels, anomaly_prediction_weights)
+
+    # Identify and print the names of failed test samples
+    failed_samples = [test_names[i] for i in range(len(y_test_truth)) if y_test_truth[i] != y_pred[i]]
+    print("Failed test samples:", failed_samples)
+
+    return {"auroc": auroc, "fpr": fpr, "tpr": tpr, "threshold": optimal_threshold, "accuracy": accuracy}
 
 
 def compute_pixelwise_retrieval_metrics(anomaly_segmentations, ground_truth_masks):
