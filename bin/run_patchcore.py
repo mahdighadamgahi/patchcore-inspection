@@ -134,7 +134,17 @@ def run(
             anomaly_labels = [
                 x[1] != "good" for x in dataloaders["testing"].dataset.data_to_iterate
             ]
-
+            sample_names = [x[0] for x in dataloaders["testing"].dataset.data_to_iterate]
+            LOGGER.info("Computing evaluation metrics.")
+            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
+                scores, anomaly_labels,sample_names
+            )["auroc"]
+            threshold = patchcore.metrics.compute_imagewise_retrieval_metrics(
+                scores, anomaly_labels,sample_names
+            )["threshold"]
+            accuracy = patchcore.metrics.compute_imagewise_retrieval_metrics(
+                scores, anomaly_labels,sample_names
+            )["accuracy"]
             # (Optional) Plot example images.
             if save_segmentation_images:
                 image_paths = [
@@ -171,18 +181,9 @@ def run(
                     mask_paths,
                     image_transform=image_transform,
                     mask_transform=mask_transform,
+                    threshold,
                 )
-            sample_names = [x[0] for x in dataloaders["testing"].dataset.data_to_iterate]
-            LOGGER.info("Computing evaluation metrics.")
-            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels,sample_names
-            )["auroc"]
-            threshold = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels,sample_names
-            )["threshold"]
-            accuracy = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels,sample_names
-            )["accuracy"]
+
             # Compute PRO score & PW Auroc for all images
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
                 segmentations, masks_gt
