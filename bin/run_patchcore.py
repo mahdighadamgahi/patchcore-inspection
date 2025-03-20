@@ -172,16 +172,16 @@ def run(
                     image_transform=image_transform,
                     mask_transform=mask_transform,
                 )
-
+            sample_names = [x[0] for x in dataloaders["testing"].dataset.data_to_iterate]
             LOGGER.info("Computing evaluation metrics.")
             auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels
+                scores, anomaly_labels,sample_names
             )["auroc"]
             threshold = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels
+                scores, anomaly_labels,sample_names
             )["threshold"]
             accuracy = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels
+                scores, anomaly_labels,sample_names
             )["accuracy"]
             # Compute PRO score & PW Auroc for all images
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
