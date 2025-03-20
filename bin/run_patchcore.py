@@ -181,7 +181,7 @@ def run(
                     mask_paths,
                     image_transform=image_transform,
                     mask_transform=mask_transform,
-                    threshold,
+                    threshold=threshold,
                 )
 
             # Compute PRO score & PW Auroc for all images
