@@ -67,7 +67,7 @@ def plot_segmentation_images(
         f, axes = plt.subplots(1, 2 + int(masks_provided))
         axes[0].imshow(image.transpose(1, 2, 0))
         axes[1].imshow(mask.transpose(1, 2, 0))
-        axes[2].imshow(segmentation,vmin=0, vmax=1)
+        axes[2].imshow(segmentation,vmin=0, vmax=max(segmentation.max(), 0.5))
         f.suptitle(f"Anomaly Score: {anomaly_score}", fontsize=12, color="red")
         f.set_size_inches(3 * (2 + int(masks_provided)), 3)
         f.tight_layout()
