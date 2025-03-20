@@ -134,7 +134,7 @@ def run(
             anomaly_labels = [
                 x[1] != "good" for x in dataloaders["testing"].dataset.data_to_iterate
             ]
-            sample_names = [x[0] for x in dataloaders["testing"].dataset.data_to_iterate]
+            sample_names = [x[2] for x in dataloaders["testing"].dataset.data_to_iterate]
             LOGGER.info("Computing evaluation metrics.")
             auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
                 scores, anomaly_labels,sample_names
