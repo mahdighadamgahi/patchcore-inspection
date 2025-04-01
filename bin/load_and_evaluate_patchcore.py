@@ -143,18 +143,22 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                     image_transform=image_transform,
                     mask_transform=mask_transform,
                 )
+            sample_names = [x[2] for x in dataloaders["testing"].dataset.data_to_iterate]
 
             LOGGER.info("Computing evaluation metrics.")
             # Compute Image-level AUROC scores for all images.
             auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels
+                scores, anomaly_labels,sample_names
             )["auroc"]
-
+            # Compute labels for all images
+            threshold = patchcore.metrics.save_image_labels(
+                scores, anomaly_labels,sample_names,results_path
+            )["threshold"]
             # Compute PRO score & PW Auroc for all images
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
                 segmentations, masks_gt
             )
-            full_pixel_auroc = pixel_scores["auroc"]
+            
 
             # Compute PRO score & PW Auroc only for images with anomalies
             sel_idxs = []
