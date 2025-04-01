@@ -67,7 +67,7 @@ def save_image_labels(
     with open(savename, mode='w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['Sample Name', 'Predicted Label'])
-        for name, truth, label in zip(sample_names, labels):
+        for name, label in zip(sample_names, labels):
             csv_writer.writerow([name, label])
 
     return { "threshold": lower_threshold,"threshold_2": upper_threshold}
