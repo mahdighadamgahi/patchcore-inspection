@@ -3,7 +3,7 @@ import numpy as np
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import csv
-
+import os
 
 def compute_imagewise_retrieval_metrics(
     anomaly_prediction_weights, anomaly_ground_truth_labels, sample_names
