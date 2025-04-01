@@ -73,6 +73,43 @@ def save_image_labels(
     return { "threshold": lower_threshold,"threshold_2": upper_threshold}
 
 
+def label_images(
+    anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.4
+):
+    """
+    Computes retrieval statistics (AUROC, FPR, TPR) and saves the names of test samples in a CSV file with three labels.
+
+    Args:
+        anomaly_prediction_weights: [np.array or list] [N] Assignment weights
+                                    per image. Higher indicates higher
+                                    probability of being an anomaly.
+        anomaly_ground_truth_labels: [np.array or list] [N] Binary labels - 1
+                                    if image is an anomaly, 0 if not.
+        sample_names: [list] [N] Names of the samples.
+        output_csv_path: [str] Path to save the output CSV file.
+        lower_threshold: [float] Lower threshold for determining ambiguous label.
+        upper_threshold: [float] Upper threshold for determining anomaly label.
+    """
+    
+    # Assign labels based on the thresholds
+    labels = []
+    for weight in anomaly_prediction_weights:
+        if weight < lower_threshold:
+            labels.append(0)  # Normal
+        elif weight >= upper_threshold:
+            labels.append(1)  # Anomaly
+        else:
+            labels.append(2)  # Ambiguous
+    savename = os.path.join(results_path, "labels.csv")
+    # Save the names and labels of test samples in a CSV file
+    with open(savename, mode='w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['Sample Name', 'Predicted Label'])
+        for name, label in zip(sample_names, labels):
+            csv_writer.writerow([name, label])
+
+    return { "threshold": lower_threshold,"threshold_2": upper_threshold}
+
 def compute_pixelwise_retrieval_metrics(anomaly_segmentations, ground_truth_masks):
     """
     Computes pixel-wise statistics (AUROC, FPR, TPR) for anomaly segmentations
