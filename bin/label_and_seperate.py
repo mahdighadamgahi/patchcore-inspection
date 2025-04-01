@@ -151,7 +151,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
 
             LOGGER.info("Computing evaluation metrics.")
             auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(scores, anomaly_labels, sample_names)["auroc"]
-            threshold = patchcore.metrics.save_image_labels(scores, sample_names, results_path)["threshold"]
+            threshold = patchcore.metrics.label_images(scores, sample_names, results_path)["threshold"]
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(segmentations, masks_gt)
 
             sel_idxs = []
