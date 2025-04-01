@@ -39,7 +39,7 @@ def save_image_labels(
     anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.4
 ):
     """
-    Computes retrieval statistics (AUROC, FPR, TPR) and saves the names of test samples in a CSV file with three labels.
+    saves the names of test samples in a CSV file with three labels.
 
     Args:
         anomaly_prediction_weights: [np.array or list] [N] Assignment weights
@@ -68,25 +68,25 @@ def save_image_labels(
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['Sample Name', 'Predicted Label'])
         for name, label in zip(sample_names, labels):
-            csv_writer.writerow([name, label])
+            csv_writer.writerow([os.path.basename(name), label])
 
     return { "threshold": lower_threshold,"threshold_2": upper_threshold}
 
+import os
+import shutil
 
 def label_images(
-    anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.4
+    anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.5
 ):
     """
-    Computes retrieval statistics (AUROC, FPR, TPR) and saves the names of test samples in a CSV file with three labels.
+    saves the images in respective folders based on their labels.
 
     Args:
         anomaly_prediction_weights: [np.array or list] [N] Assignment weights
                                     per image. Higher indicates higher
                                     probability of being an anomaly.
-        anomaly_ground_truth_labels: [np.array or list] [N] Binary labels - 1
-                                    if image is an anomaly, 0 if not.
-        sample_names: [list] [N] Names of the samples.
-        output_csv_path: [str] Path to save the output CSV file.
+        sample_names: [list] [N] Full paths of the sample images.
+        results_path: [str] Path to save the labeled images.
         lower_threshold: [float] Lower threshold for determining ambiguous label.
         upper_threshold: [float] Upper threshold for determining anomaly label.
     """
@@ -95,20 +95,33 @@ def label_images(
     labels = []
     for weight in anomaly_prediction_weights:
         if weight < lower_threshold:
-            labels.append(0)  # Normal
+            labels.append('normal')  # Normal
         elif weight >= upper_threshold:
-            labels.append(1)  # Anomaly
+            labels.append('anomaly')  # Anomaly
         else:
-            labels.append(2)  # Ambiguous
-    savename = os.path.join(results_path, "labels.csv")
-    # Save the names and labels of test samples in a CSV file
-    with open(savename, mode='w', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['Sample Name', 'Predicted Label'])
-        for name, label in zip(sample_names, labels):
-            csv_writer.writerow([name, label])
+            labels.append('ambiguous')  # Ambiguous
 
-    return { "threshold": lower_threshold,"threshold_2": upper_threshold}
+    # Create directories for each label
+    normal_dir = os.path.join(results_path, 'normal')
+    anomaly_dir = os.path.join(results_path, 'anomaly')
+    ambiguous_dir = os.path.join(results_path, 'ambiguous')
+    os.makedirs(normal_dir, exist_ok=True)
+    os.makedirs(anomaly_dir, exist_ok=True)
+    os.makedirs(ambiguous_dir, exist_ok=True)
+
+    # Save images in respective directories
+    for name, label in zip(sample_names, labels):
+        if label == 'normal':
+            dst = os.path.join(normal_dir, os.path.basename(name))
+        elif label == 'anomaly':
+            dst = os.path.join(anomaly_dir, os.path.basename(name))
+        else:
+            dst = os.path.join(ambiguous_dir, os.path.basename(name))
+        
+        # Move the image to the respective directory
+        shutil.move(name, dst)
+
+    return {"threshold": lower_threshold, "threshold_2": upper_threshold}
 
 def compute_pixelwise_retrieval_metrics(anomaly_segmentations, ground_truth_masks):
     """
