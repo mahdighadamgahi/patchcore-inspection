@@ -3,6 +3,7 @@ import gc
 import logging
 import os
 import sys
+import shutil
 
 import click
 import numpy as np
@@ -18,7 +19,6 @@ LOGGER = logging.getLogger(__name__)
 
 _DATASETS = {"mvtec": ["patchcore.datasets.mvtec", "MVTecDataset"]}
 
-
 @click.group(chain=True)
 @click.argument("results_path", type=str)
 @click.option("--gpu", type=int, default=[0], multiple=True, show_default=True)
@@ -27,7 +27,6 @@ _DATASETS = {"mvtec": ["patchcore.datasets.mvtec", "MVTecDataset"]}
 def main(**kwargs):
     pass
 
-
 @main.result_callback()
 def run(methods, results_path, gpu, seed, save_segmentation_images):
     methods = {key: item for (key, item) in methods}
@@ -35,9 +34,6 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
     os.makedirs(results_path, exist_ok=True)
 
     device = patchcore.utils.set_torch_device(gpu)
-    # Device context here is specifically set and used later
-    # because there was GPU memory-bleeding which I could only fix with
-    # context managers.
     device_context = (
         torch.cuda.device("cuda:{}".format(device.index))
         if "cuda" in device.type.lower()
@@ -110,11 +106,19 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                 x[1] != "good" for x in dataloaders["testing"].dataset.data_to_iterate
             ]
 
-            # Plot Example Images.
+            # Save images to respective folders
+            image_paths = [
+                x[2] for x in dataloaders["testing"].dataset.data_to_iterate
+            ]
+            labels = [
+                x[1] for x in dataloaders["testing"].dataset.data_to_iterate
+            ]
+            for image_path, label in zip(image_paths, labels):
+                label_dir = os.path.join(results_path, label)
+                os.makedirs(label_dir, exist_ok=True)
+                shutil.copy(image_path, label_dir)
+
             if save_segmentation_images:
-                image_paths = [
-                    x[2] for x in dataloaders["testing"].dataset.data_to_iterate
-                ]
                 mask_paths = [
                     x[3] for x in dataloaders["testing"].dataset.data_to_iterate
                 ]
@@ -146,14 +150,10 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
             sample_names = [x[2] for x in dataloaders["testing"].dataset.data_to_iterate]
 
             LOGGER.info("Computing evaluation metrics.")
-            # Compute Image-level AUROC scores for all images.
-            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(scores, anomaly_labels,sample_names)["auroc"]
-            # Compute labels for all images
-            threshold = patchcore.metrics.save_image_labels(scores, sample_names,results_path)["threshold"]
-            # Compute PRO score & PW Auroc for all images
+            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(scores, anomaly_labels, sample_names)["auroc"]
+            threshold = patchcore.metrics.save_image_labels(scores, sample_names, results_path)["threshold"]
             pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(segmentations, masks_gt)
 
-            # Compute PRO score & PW Auroc only for images with anomalies
             sel_idxs = []
             for i in range(len(masks_gt)):
                 if np.sum(masks_gt[i]) > 0:
@@ -190,11 +190,8 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
         row_names=result_dataset_names,
     )
 
-
 @main.command("patch_core_loader")
-# Pretraining-specific parameters.
 @click.option("--patch_core_paths", "-p", type=str, multiple=True, default=[])
-# NN on GPU.
 @click.option("--faiss_on_gpu", is_flag=True)
 @click.option("--faiss_num_workers", type=int, default=8)
 def patch_core_loader(patch_core_paths, faiss_on_gpu, faiss_num_workers):
@@ -229,7 +226,6 @@ def patch_core_loader(patch_core_paths, faiss_on_gpu, faiss_num_workers):
             yield loaded_patchcores
 
     return ("get_patchcore_iter", [get_patchcore_iter, len(patch_core_paths)])
-
 
 @main.command("dataset")
 @click.argument("name", type=str)
@@ -274,7 +270,6 @@ def dataset(
             yield dataloader_dict
 
     return ("get_dataloaders_iter", [get_dataloaders_iter, len(subdatasets)])
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
