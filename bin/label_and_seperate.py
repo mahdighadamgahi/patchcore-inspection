@@ -88,91 +88,9 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
             scores = (scores - min_scores) / (max_scores - min_scores)
             scores = np.mean(scores, axis=0)
 
-            segmentations = np.array(aggregator["segmentations"])
-            min_scores = (
-                segmentations.reshape(len(segmentations), -1)
-                .min(axis=-1)
-                .reshape(-1, 1, 1, 1)
-            )
-            max_scores = (
-                segmentations.reshape(len(segmentations), -1)
-                .max(axis=-1)
-                .reshape(-1, 1, 1, 1)
-            )
-            segmentations = (segmentations - min_scores) / (max_scores - min_scores)
-            segmentations = np.mean(segmentations, axis=0)
 
-            anomaly_labels = [
-                x[1] != "good" for x in dataloaders["testing"].dataset.data_to_iterate
-            ]
-
-            # Save images to respective folders
-            image_paths = [
-                x[2] for x in dataloaders["testing"].dataset.data_to_iterate
-            ]
-            labels = [
-                x[1] for x in dataloaders["testing"].dataset.data_to_iterate
-            ]
-            for image_path, label in zip(image_paths, labels):
-                label_dir = os.path.join(results_path, label)
-                os.makedirs(label_dir, exist_ok=True)
-                shutil.copy(image_path, label_dir)
-
-            if save_segmentation_images:
-                mask_paths = [
-                    x[3] for x in dataloaders["testing"].dataset.data_to_iterate
-                ]
-
-                def image_transform(image):
-                    in_std = np.array(
-                        dataloaders["testing"].dataset.transform_std
-                    ).reshape(-1, 1, 1)
-                    in_mean = np.array(
-                        dataloaders["testing"].dataset.transform_mean
-                    ).reshape(-1, 1, 1)
-                    image = dataloaders["testing"].dataset.transform_img(image)
-                    return np.clip(
-                        (image.numpy() * in_std + in_mean) * 255, 0, 255
-                    ).astype(np.uint8)
-
-                def mask_transform(mask):
-                    return dataloaders["testing"].dataset.transform_mask(mask).numpy()
-
-                patchcore.utils.plot_segmentation_images(
-                    results_path,
-                    image_paths,
-                    segmentations,
-                    scores,
-                    mask_paths,
-                    image_transform=image_transform,
-                    mask_transform=mask_transform,
-                )
             sample_names = [x[2] for x in dataloaders["testing"].dataset.data_to_iterate]
 
-            LOGGER.info("Computing evaluation metrics.")
-            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(scores, anomaly_labels, sample_names)["auroc"]
-            pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(segmentations, masks_gt)
-
-            sel_idxs = []
-            for i in range(len(masks_gt)):
-                if np.sum(masks_gt[i]) > 0:
-                    sel_idxs.append(i)
-            pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
-                [segmentations[i] for i in sel_idxs], [masks_gt[i] for i in sel_idxs]
-            )
-            anomaly_pixel_auroc = pixel_scores["auroc"]
-
-            result_collect.append(
-                {
-                    "dataset_name": dataset_name,
-                    "instance_auroc": auroc,
-                    "anomaly_pixel_auroc": anomaly_pixel_auroc,
-                }
-            )
-
-            for key, item in result_collect[-1].items():
-                if key != "dataset_name":
-                    LOGGER.info("{0}: {1:3.3f}".format(key, item))
             threshold = patchcore.metrics.label_images(scores, sample_names, results_path)["threshold"]
 
             del PatchCore_list
@@ -180,15 +98,6 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
 
         LOGGER.info("\n\n-----\n")
 
-    result_metric_names = list(result_collect[-1].keys())[1:]
-    result_dataset_names = [results["dataset_name"] for results in result_collect]
-    result_scores = [list(results.values())[1:] for results in result_collect]
-    patchcore.utils.compute_and_store_final_results(
-        results_path,
-        result_scores,
-        column_names=result_metric_names,
-        row_names=result_dataset_names,
-    )
 
 @main.command("patch_core_loader")
 @click.option("--patch_core_paths", "-p", type=str, multiple=True, default=[])
