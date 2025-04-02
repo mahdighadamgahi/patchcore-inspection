@@ -181,7 +181,7 @@ class PatchCore(torch.nn.Module):
         return self._predict(data)
     def predict_ram_efficient(self, data):
         if isinstance(data, torch.utils.data.DataLoader):
-            return self._predict_dataloader_ram_efiicient(data)
+            return self._predict_dataloader_ram_efficient(data)
         return self._predict(data)
 
     def _predict_dataloader(self, dataloader):
@@ -203,12 +203,12 @@ class PatchCore(torch.nn.Module):
                     scores.append(score)
                     masks.append(mask)
         return scores, masks, labels_gt, masks_gt
-    def _predict_dataloader_ram_efiicient(self, dataloader):
+    def _predict_dataloader_ram_efficient(self, dataloader):
         """This function provides anomaly scores/maps for full dataloaders."""
         _ = self.forward_modules.eval()
 
         scores = []
-        with tqdm.tqdm(dataloader, desc="Inferring...", leave=False) as data_iterator:
+        with tqdm.tqdm(dataloader, desc="Inferring efficiently...", leave=False) as data_iterator:
             for image in data_iterator:
                 if isinstance(image, dict):
                     image = image["image"]
