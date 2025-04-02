@@ -80,7 +80,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                         i + 1, len(PatchCore_list)
                     )
                 )
-                scores, segmentations, labels_gt, masks_gt = PatchCore.predict(
+                scores, segmentations, labels_gt, masks_gt = PatchCore.predict_ram_efficient(
                     dataloaders["testing"]
                 )
                 aggregator["scores"].append(scores)
@@ -88,6 +88,11 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                 del segmentations, labels_gt, masks_gt
                 torch.cuda.empty_cache()
                 gc.collect()
+            
+            
+            
+            
+            
             scores = np.array(aggregator["scores"])
             min_scores = scores.min(axis=-1).reshape(-1, 1)
             max_scores = scores.max(axis=-1).reshape(-1, 1)
