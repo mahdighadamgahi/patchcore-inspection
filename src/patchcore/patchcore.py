@@ -216,7 +216,6 @@ class PatchCore(torch.nn.Module):
                 for score in _scores:
                     scores.append(score)
             torch.cuda.empty_cache()
-            gc.collect()
         return scores
 
     def _predict(self, images):
