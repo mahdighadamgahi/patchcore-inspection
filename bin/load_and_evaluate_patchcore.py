@@ -85,7 +85,9 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                 )
                 aggregator["scores"].append(scores)
                 #aggregator["segmentations"].append(segmentations)
-
+                del segmentations, labels_gt, masks_gt
+                torch.cuda.empty_cache()
+                gc.collect()
             scores = np.array(aggregator["scores"])
             min_scores = scores.min(axis=-1).reshape(-1, 1)
             max_scores = scores.max(axis=-1).reshape(-1, 1)
