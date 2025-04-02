@@ -36,7 +36,7 @@ def compute_imagewise_retrieval_metrics(
     return {"auroc": auroc, "fpr": fpr, "tpr": tpr, "threshold": optimal_threshold, "accuracy": accuracy}
 
 def save_image_labels(
-    anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.4
+    anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.5
 ):
     """
     saves the names of test samples in a CSV file with three labels.
@@ -66,9 +66,9 @@ def save_image_labels(
     # Save the names and labels of test samples in a CSV file
     with open(savename, mode='w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['Sample Name', 'Predicted Label'])
-        for name, label in zip(sample_names, labels):
-            csv_writer.writerow([os.path.basename(name), label])
+        csv_writer.writerow(['Sample Name', 'Predicted Label','score'])
+        for name, label,score in zip(sample_names, labels,anomaly_prediction_weights):
+            csv_writer.writerow([os.path.basename(name), label,score])
 
     return { "threshold": lower_threshold,"threshold_2": upper_threshold}
 
