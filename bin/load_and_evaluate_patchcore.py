@@ -84,7 +84,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                     dataloaders["testing"]
                 )
                 aggregator["scores"].append(scores)
-                aggregator["segmentations"].append(segmentations)
+                #aggregator["segmentations"].append(segmentations)
 
             scores = np.array(aggregator["scores"])
             min_scores = scores.min(axis=-1).reshape(-1, 1)
@@ -92,7 +92,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
             scores = (scores - min_scores) / (max_scores - min_scores)
             scores = np.mean(scores, axis=0)
 
-            segmentations = np.array(aggregator["segmentations"])
+            '''segmentations = np.array(aggregator["segmentations"])
             min_scores = (
                 segmentations.reshape(len(segmentations), -1)
                 .min(axis=-1)
@@ -142,16 +142,16 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                     mask_paths,
                     image_transform=image_transform,
                     mask_transform=mask_transform,
-                )
+                )'''
             sample_names = [x[2] for x in dataloaders["testing"].dataset.data_to_iterate]
 
             LOGGER.info("Computing evaluation metrics.")
             # Compute Image-level AUROC scores for all images.
-            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(scores, anomaly_labels,sample_names)["auroc"]
-            # Compute labels for all images
+'''            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(scores, anomaly_labels,sample_names)["auroc"]
+'''            # Compute labels for all images
             threshold = patchcore.metrics.save_image_labels(scores, sample_names,results_path)["threshold"]
             # Compute PRO score & PW Auroc for all images
-            pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(segmentations, masks_gt)
+            '''pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(segmentations, masks_gt)
 
             # Compute PRO score & PW Auroc only for images with anomalies
             sel_idxs = []
@@ -174,12 +174,12 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
             for key, item in result_collect[-1].items():
                 if key != "dataset_name":
                     LOGGER.info("{0}: {1:3.3f}".format(key, item))
-
+'''
             del PatchCore_list
             gc.collect()
 
         LOGGER.info("\n\n-----\n")
-
+'''
     result_metric_names = list(result_collect[-1].keys())[1:]
     result_dataset_names = [results["dataset_name"] for results in result_collect]
     result_scores = [list(results.values())[1:] for results in result_collect]
@@ -188,7 +188,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
         result_scores,
         column_names=result_metric_names,
         row_names=result_dataset_names,
-    )
+    )'''
 
 
 @main.command("patch_core_loader")
