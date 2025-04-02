@@ -86,9 +86,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                 aggregator["scores"].append(scores)
                 #aggregator["segmentations"].append(segmentations)
                 del segmentations, labels_gt, masks_gt
-                torch.cuda.empty_cache()
-                gc.collect()
-            
+                torch.cuda.empty_cache()            
             
             
             
