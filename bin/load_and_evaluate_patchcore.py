@@ -80,12 +80,11 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                         i + 1, len(PatchCore_list)
                     )
                 )
-                scores, segmentations, labels_gt, masks_gt = PatchCore.predict_ram_efficient(
+                scores= PatchCore.predict_ram_efficient(
                     dataloaders["testing"]
                 )
                 aggregator["scores"].append(scores)
                 #aggregator["segmentations"].append(segmentations)
-                del segmentations, labels_gt, masks_gt
                 torch.cuda.empty_cache()            
             
             
