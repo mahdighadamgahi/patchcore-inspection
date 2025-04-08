@@ -212,7 +212,7 @@ class PatchCore(torch.nn.Module):
             for image in data_iterator:
                 if isinstance(image, dict):
                     image = image["image"]
-                _scores = self._predictno_segmentation(image)
+                _scores = self._predict_no_segmentation(image)
                 for score in _scores:
                     scores.append(score)
             torch.cuda.empty_cache()
