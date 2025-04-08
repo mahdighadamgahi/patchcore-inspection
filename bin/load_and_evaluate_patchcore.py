@@ -80,7 +80,7 @@ def run(methods, results_path, gpu, seed, save_segmentation_images):
                         i + 1, len(PatchCore_list)
                     )
                 )
-                scores= PatchCore.predict_ram_efficient(
+                scores= PatchCore.predict_no_segmentation(
                     dataloaders["testing"]
                 )
                 aggregator["scores"].append(scores)
