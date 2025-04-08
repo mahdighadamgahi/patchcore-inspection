@@ -185,28 +185,28 @@ def run(
                 )
 
             # Compute PRO score & PW Auroc for all images
-            pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
-                segmentations, masks_gt
-            )
-            full_pixel_auroc = pixel_scores["auroc"]
+            #pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
+            #    segmentations, masks_gt
+            #)
+            #full_pixel_auroc = pixel_scores["auroc"]
 
             # Compute PRO score & PW Auroc only images with anomalies
             sel_idxs = []
             for i in range(len(masks_gt)):
                 if np.sum(masks_gt[i]) > 0:
                     sel_idxs.append(i)
-            pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
-                [segmentations[i] for i in sel_idxs],
-                [masks_gt[i] for i in sel_idxs],
-            )
-            anomaly_pixel_auroc = pixel_scores["auroc"]
+            #pixel_scores = patchcore.metrics.compute_pixelwise_retrieval_metrics(
+            #    [segmentations[i] for i in sel_idxs],
+            #    [masks_gt[i] for i in sel_idxs],
+            #)
+            #anomaly_pixel_auroc = pixel_scores["auroc"]
 
             result_collect.append(
                 {
                     "dataset_name": dataset_name,
                     "instance_auroc": auroc,
-                    "full_pixel_auroc": full_pixel_auroc,
-                    "anomaly_pixel_auroc": anomaly_pixel_auroc,
+                    #"full_pixel_auroc": full_pixel_auroc,
+                    #"anomaly_pixel_auroc": anomaly_pixel_auroc,
                     "optimal_threshold":threshold,
                     "accuracy_wrt_optimal_threshold":accuracy,
                 }
