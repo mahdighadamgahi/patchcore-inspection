@@ -245,7 +245,7 @@ class PatchCore(torch.nn.Module):
 
         return [score for score in image_scores], [mask for mask in masks]
         
-        def _predict_no_segmentation(self, images):
+    def _predict_no_segmentation(self, images):
         """Infer score and mask for a batch of images."""
         images = images.to(torch.float).to(self.device)
         _ = self.forward_modules.eval()
