@@ -179,9 +179,9 @@ class PatchCore(torch.nn.Module):
         if isinstance(data, torch.utils.data.DataLoader):
             return self._predict_dataloader(data)
         return self._predict(data)
-    def predict_ram_efficient(self, data):
+    def predict_no_segmentation(self, data):
         if isinstance(data, torch.utils.data.DataLoader):
-            return self._predict_dataloader_ram_efficient(data)
+            return self._predict_dataloader_no_segmentation(data)
         return self._predict(data)
 
     def _predict_dataloader(self, dataloader):
@@ -203,16 +203,16 @@ class PatchCore(torch.nn.Module):
                     scores.append(score)
                     masks.append(mask)
         return scores, masks, labels_gt, masks_gt
-    def _predict_dataloader_ram_efficient(self, dataloader):
-        """This function provides anomaly scores/maps for full dataloaders."""
+    def _predict_dataloader_no_segmentation(self, dataloader):
+        """This function provides anomaly scores for full dataloaders."""
         _ = self.forward_modules.eval()
 
         scores = []
-        with tqdm.tqdm(dataloader, desc="Inferring efficiently...", leave=False) as data_iterator:
+        with tqdm.tqdm(dataloader, desc="Inferring without segmentation...", leave=False) as data_iterator:
             for image in data_iterator:
                 if isinstance(image, dict):
                     image = image["image"]
-                _scores, _masks = self._predict(image)
+                _scores = self._predictno_segmentation(image)
                 for score in _scores:
                     scores.append(score)
             torch.cuda.empty_cache()
@@ -244,7 +244,27 @@ class PatchCore(torch.nn.Module):
             masks = self.anomaly_segmentor.convert_to_segmentation(patch_scores)
 
         return [score for score in image_scores], [mask for mask in masks]
+        
+        def _predict_no_segmentation(self, images):
+        """Infer score and mask for a batch of images."""
+        images = images.to(torch.float).to(self.device)
+        _ = self.forward_modules.eval()
 
+        batchsize = images.shape[0]
+        with torch.no_grad():
+            features, patch_shapes = self._embed(images, provide_patch_shapes=True)
+            features = np.asarray(features)
+
+            patch_scores = image_scores = self.anomaly_scorer.predict([features])[0]
+            image_scores = self.patch_maker.unpatch_scores(
+                image_scores, batchsize=batchsize
+            )
+            image_scores = image_scores.reshape(*image_scores.shape[:2], -1)
+            image_scores = self.patch_maker.score(image_scores)
+
+
+
+        return [score for score in image_scores]
     @staticmethod
     def _params_file(filepath, prepend=""):
         return os.path.join(filepath, prepend + "patchcore_params.pkl")
