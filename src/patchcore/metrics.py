@@ -6,7 +6,7 @@ import csv
 import os
 
 def compute_imagewise_retrieval_metrics(
-    anomaly_prediction_weights, anomaly_ground_truth_labels, sample_names
+    anomaly_prediction_weights, anomaly_ground_truth_labels, sample_names,threshold
 ):
     """
     Computes retrieval statistics (AUROC, FPR, TPR) and prints the names of failed test samples.
@@ -19,21 +19,27 @@ def compute_imagewise_retrieval_metrics(
                                     if image is an anomaly, 0 if not.
         sample_names: [list] [N] Names of the samples.
     """
+    """
+    #threshhold based on validation set
     y_val_truth, y_test_truth, y_val_pred, y_test_pred, val_names, test_names = train_test_split(
         anomaly_ground_truth_labels, anomaly_prediction_weights, sample_names, test_size=0.5, random_state=42
     )
-
+    
     fpr, tpr, thresholds = metrics.roc_curve(y_val_truth, y_val_pred)
     J = tpr - fpr
     optimal_threshold = thresholds[np.argmax(J)]
     y_pred = (y_test_pred >= optimal_threshold).astype(int)
     accuracy = metrics.accuracy_score(y_test_truth, y_pred)
-
+    """
+    #threshold based in train set
+    optimal_threshold = threshold
+    y_pred = (anomaly_prediction_weights >= optimal_threshold).astype(int)
+    accuracy = metrics.accuracy_score(anomaly_ground_truth_labels, y_pred)
     auroc = metrics.roc_auc_score(anomaly_ground_truth_labels, anomaly_prediction_weights)
 
 
 
-    return {"auroc": auroc, "fpr": fpr, "tpr": tpr, "threshold": optimal_threshold, "accuracy": accuracy}
+    return {"auroc": auroc, "threshold": optimal_threshold, "accuracy": accuracy}
 
 def save_image_labels(
     anomaly_prediction_weights, sample_names, results_path, lower_threshold=.1, upper_threshold=.5
