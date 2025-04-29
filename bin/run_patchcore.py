@@ -108,12 +108,8 @@ def run(
                 thresholds = PatchCore.predict_no_segmentation(
                     dataloaders["training"]
                 )
-            # Compute mean and standard deviation
-            mean = np.mean(thresholds)
-            std_dev = np.std(thresholds)
-
-            # Define threshold as 3 standard deviations above the mean
-            threshold = mean + 3 * std_dev
+            
+            threshold = 0.5
                 
             aggregator = {"scores": [], "segmentations": []}
             
