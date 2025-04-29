@@ -109,7 +109,6 @@ def run(
                     dataloaders["training"]
                 )
             
-            threshold = 0.5
                 
             aggregator = {"scores": [], "segmentations": []}
             
@@ -131,7 +130,13 @@ def run(
             max_scores = scores.max(axis=-1).reshape(-1, 1)
             scores = (scores - min_scores) / (max_scores - min_scores)
             scores = np.mean(scores, axis=0)
-
+            
+            thresholds = np.array(thresholds)
+            std_threshold =np.std(thresholds)
+            thresholds = (thresholds - min_scores) / (max_scores - min_scores)
+            max_threshold = thresholds.max()
+            threshold =  max_threshold + 3 * std_threshold
+            
             segmentations = np.array(aggregator["segmentations"])
             min_scores = (
                 segmentations.reshape(len(segmentations), -1)
