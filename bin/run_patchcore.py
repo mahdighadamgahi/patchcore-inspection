@@ -97,7 +97,26 @@ def run(
                 PatchCore.fit(dataloaders["training"])
 
             torch.cuda.empty_cache()
+            #compute training threshold
+            for i, PatchCore in enumerate(PatchCore_list):
+                torch.cuda.empty_cache()
+                LOGGER.info(
+                    "computing optimal threshold ({}/{})".format(
+                        i + 1, len(PatchCore_list)
+                    )
+                )
+                thresholds = PatchCore.predict_no_segmentation(
+                    dataloaders["training"]
+                )
+            # Compute mean and standard deviation
+            mean = np.mean(thresholds)
+            std_dev = np.std(thresholds)
+
+            # Define threshold as 3 standard deviations above the mean
+            threshold = mean + 3 * std_dev
+                
             aggregator = {"scores": [], "segmentations": []}
+            
             for i, PatchCore in enumerate(PatchCore_list):
                 torch.cuda.empty_cache()
                 LOGGER.info(
@@ -136,15 +155,12 @@ def run(
             ]
             sample_names = [x[2] for x in dataloaders["testing"].dataset.data_to_iterate]
             LOGGER.info("Computing evaluation metrics.")
-            auroc = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels,sample_names
-            )["auroc"]
-            threshold = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels,sample_names
-            )["threshold"]
-            accuracy = patchcore.metrics.compute_imagewise_retrieval_metrics(
-                scores, anomaly_labels,sample_names
-            )["accuracy"]
+            metrics = patchcore.metrics.compute_imagewise_retrieval_metrics(
+                scores, anomaly_labels,sample_names,threshold
+            )
+            auroc = metrics["auroc"]
+            threshold =metrics["threshold"]
+            accuracy = metrics["accuracy"]
             # (Optional) Plot example images.
             if save_segmentation_images:
                 image_paths = [
